@@ -1,0 +1,33 @@
+# Compiled output
+*.out
+*.o
+*.a
+*.so
+
+# Executable binaries
+*.exe
+*.bin
+*.elf
+
+# Shell history and temporary files
+*.swp
+*.swo
+*~
+.history
+.bash_history
+
+# Logs
+*.log
+
+# Environment/config files
+.env
+*.conf
+*.cfg
+
+# macOS files
+.DS_Store
+
+# Backup files
+*.bak
+*.tmp
+*.old
