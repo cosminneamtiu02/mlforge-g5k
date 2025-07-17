@@ -13,23 +13,28 @@ jobs:
 
       - name: Install ShellCheck and reviewdog
         run: |
-          sudo apt-get update && sudo apt-get install -y shellcheck curl
+          sudo apt-get update
+          sudo apt-get install -y shellcheck curl
           curl -sfL https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh | sh -s -- -b /usr/local/bin
 
-      - name: Run ShellCheck and fail CI if issues exist
+      - name: Run ShellCheck and fail if issues exist
         run: |
-          shellcheck **/*.sh | tee result.txt
-          if [ -s result.txt ]; then
-            echo "ShellCheck found issues:"
-            cat result.txt
+          mkdir -p reports
+          shellcheck **/*.sh | tee reports/shellcheck.txt
+          if [ -s reports/shellcheck.txt ]; then
+            echo "ShellCheck found issues"
             exit 1
           else
-            echo "No issues found."
+            echo "No ShellCheck issues"
           fi
 
       - name: Annotate ShellCheck results in PR
         if: github.event_name == 'pull_request'
         run: |
-          reviewdog -efm="%f:%l:%c: %m" -name="ShellCheck" -reporter=github-pr-review -fail-on-error=false < result.txt
+          cat reports/shellcheck.txt | reviewdog \
+            -efm="%f:%l:%c: %m" \
+            -name="ShellCheck" \
+            -reporter=github-pr-review \
+            -fail-on-error=false
         env:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
