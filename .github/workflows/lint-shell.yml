@@ -1,4 +1,4 @@
-name: ShellCheck Linter
+name: ShellCheck Hybrid
 
 on:
   push:
@@ -6,16 +6,30 @@ on:
 
 jobs:
   shellcheck:
-    name: ShellCheck via reviewdog
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run ShellCheck with reviewdog
-        uses: reviewdog/action-shellcheck@v1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          reporter: github-pr-check  # Shows annotations in PRs
-          level: error               # ❗ CI will now fail if violations are found
-          pattern: '**/*.sh'         # Scan all .sh files in the repo
+      - name: Install ShellCheck and reviewdog
+        run: |
+          sudo apt-get update && sudo apt-get install -y shellcheck curl
+          curl -sfL https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh | sh -s -- -b /usr/local/bin
+
+      - name: Run ShellCheck and fail CI if issues exist
+        run: |
+          shellcheck **/*.sh | tee result.txt
+          if [ -s result.txt ]; then
+            echo "ShellCheck found issues:"
+            cat result.txt
+            exit 1
+          else
+            echo "No issues found."
+          fi
+
+      - name: Annotate ShellCheck results in PR
+        if: github.event_name == 'pull_request'
+        run: |
+          reviewdog -efm="%f:%l:%c: %m" -name="ShellCheck" -reporter=github-pr-review -fail-on-error=false < result.txt
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
