@@ -38,7 +38,7 @@ jobs:
           shopt -s globstar nullglob
           shellcheck -f gcc **/*.sh | tee reports/shellcheck.txt || true
 
-      - name: Debug: Show report file contents
+      - name: Debug Show report file contents
         run: |
           echo "----- ShellCheck Output -----"
           cat reports/shellcheck.txt || echo "No ShellCheck output"
