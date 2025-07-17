@@ -2,8 +2,8 @@ name: ShellCheck Debugging
 
 on:
   push:
+  pull_request:
   pull_request_target:
-
 
 permissions:
   contents: read
@@ -45,7 +45,7 @@ jobs:
           echo "-----------------------------"
 
       - name: Run reviewdog on PR
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
         env:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -55,11 +55,6 @@ jobs:
             -efm="%f:%l:%c: %t%*[^:]: %m" \
             -reporter=github-pr-review \
             -name="ShellCheck" \
-            -fail-on-error=false \
+            -fail-on-error=true \
             -tee \
             -debug
-
-      - name: Debug: Fail if reviewdog didn't trigger
-        if: ${{ failure() }}
-        run: |
-          echo "❌ Reviewdog failed or did not post review comments."
