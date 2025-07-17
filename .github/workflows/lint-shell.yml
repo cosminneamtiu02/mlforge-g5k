@@ -1,4 +1,4 @@
-name: ShellCheck Hybrid
+name: ShellCheck Linter
 
 on:
   push:
@@ -9,7 +9,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Install ShellCheck and reviewdog
         run: |
@@ -28,11 +29,11 @@ jobs:
           cat reports/shellcheck.txt
           echo "--- End Output ---"
 
-      - name: Annotate ShellCheck results in PR
+      - name: Annotate ShellCheck results in PR with reviewdog
         if: github.event_name == 'pull_request'
         run: |
           cat reports/shellcheck.txt | reviewdog \
-            -efm="%f:%l: %m" \
+            -efm="%f:%l:%c: %t%*[^:]: %m" \
             -name="ShellCheck" \
             -reporter=github-pr-review \
             -fail-on-error=false \
