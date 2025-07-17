@@ -2,6 +2,8 @@ name: ShellCheck + Reviewdog
 
 on:
   pull_request_target:
+    paths:
+      - '**/*.sh'  # Only run on PRs that change shell script files
 
 permissions:
   contents: read
@@ -28,7 +30,7 @@ jobs:
         run: |
           mkdir -p reports
           shopt -s globstar nullglob
-          shellcheck -f gcc **/*.sh > reports/shellcheck.txt || true
+          shellcheck -f gcc **/*.sh > reports/shellcheck.txt
 
       - name: Reviewdog PR Comments
         env:
