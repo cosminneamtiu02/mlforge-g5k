@@ -1,8 +1,12 @@
-name: ShellCheck Hybrid
+name: ShellCheck with Reviewdog
 
 on:
   push:
-  pull_request:
+  pull_request_target:
+
+permissions:
+  pull-requests: write
+  contents: read
 
 jobs:
   shellcheck:
@@ -22,17 +26,10 @@ jobs:
           mkdir -p reports
           shellcheck -f gcc **/*.sh | tee reports/shellcheck.txt || true
 
-      - name: Debug ShellCheck output
-        run: |
-          echo "--- ShellCheck Output ---"
-          cat reports/shellcheck.txt
-          echo "--- End Output ---"
-
       - name: Annotate ShellCheck results in PR
-        if: github.event_name == 'pull_request'
         run: |
           cat reports/shellcheck.txt | reviewdog \
-            -efm="%f:%l: %m" \
+            -efm="%f:%l:%c: %t%*[^:]: %m" \
             -name="ShellCheck" \
             -reporter=github-pr-review \
             -fail-on-error=false \
