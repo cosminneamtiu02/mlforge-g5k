@@ -1,8 +1,9 @@
 name: Build & Lint
 
 on:
-  push:          # 🚨 Triggers on every branch
-  pull_request:  # PRs (opened, updated, reopened)
+  push:  # 🚨 Run on every branch
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 jobs:
   sonarqube:
@@ -12,26 +13,48 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Recommended by SonarCloud
+          fetch-depth: 0
 
       - name: Install ShellCheck and jq
         run: sudo apt-get update && sudo apt-get install -y shellcheck jq
 
-      - name: Run ShellCheck on all .sh files and generate JSON
+      - name: Run ShellCheck and save raw JSON output
         run: |
           mkdir -p reports
           FILES=$(find . -type f -name "*.sh")
           if [ -n "$FILES" ]; then
-            shellcheck -f json $FILES > reports/shellcheck-report.json
+            shellcheck -f json $FILES > reports/shellcheck-raw.json
           else
-            echo "[]" > reports/shellcheck-report.json
+            echo "[]" > reports/shellcheck-raw.json
           fi
 
-      - name: Fail build if ShellCheck found any issues
+      - name: Convert ShellCheck output to SonarCloud external issues format
         run: |
-          if jq 'length > 0' reports/shellcheck-report.json | grep -q true; then
-            echo "❌ ShellCheck violations found:"
-            jq . reports/shellcheck-report.json
+          jq -n --slurpfile issues reports/shellcheck-raw.json '
+            {
+              issues: $issues[0] | map({
+                engineId: "ShellCheck",
+                ruleId: .code | tostring,
+                primaryLocation: {
+                  message: .message,
+                  filePath: .file,
+                  textRange: {
+                    startLine: .line,
+                    startColumn: .column
+                  }
+                },
+                type: "CODE_SMELL",
+                severity: (if .level == "error" then "MAJOR"
+                          elif .level == "warning" then "MINOR"
+                          else "INFO" end)
+              })
+            }' > reports/shellcheck-report.json
+
+      - name: Fail if any ShellCheck issues exist
+        run: |
+          if jq '.issues | length > 0' reports/shellcheck-report.json | grep -q true; then
+            echo "❌ ShellCheck violations found."
+            cat reports/shellcheck-report.json
             exit 1
           else
             echo "✅ No ShellCheck violations found."
