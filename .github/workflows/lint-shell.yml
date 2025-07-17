@@ -20,7 +20,7 @@ jobs:
       - name: Run ShellCheck and fail if issues exist
         run: |
           mkdir -p reports
-          shellcheck **/*.sh | tee reports/shellcheck.txt
+          shellcheck -f gcc **/*.sh | tee reports/shellcheck.txt
           if [ -s reports/shellcheck.txt ]; then
             echo "ShellCheck found issues"
             exit 1
