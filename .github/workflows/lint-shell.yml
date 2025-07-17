@@ -32,7 +32,7 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           cat reports/shellcheck.txt | reviewdog \
-            -efm="%f:%l:%c: %m" \
+            -efm="%f:%l: %m" \
             -name="ShellCheck" \
             -reporter=github-pr-review \
             -fail-on-error=false
