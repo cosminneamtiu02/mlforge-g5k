@@ -1,0 +1,21 @@
+name: ShellCheck Linter
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  shellcheck:
+    name: ShellCheck via reviewdog
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run ShellCheck with reviewdog
+        uses: reviewdog/action-shellcheck@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-pr-check  # Shows results in PR "Checks" tab
+          level: warning             # Can be 'info', 'warning', or 'error'
+          pattern: '**/*.sh'         # Scan all shell scripts
