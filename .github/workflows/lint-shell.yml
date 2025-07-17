@@ -30,7 +30,7 @@ jobs:
         run: |
           mkdir -p reports
           shopt -s globstar nullglob
-          shellcheck -f gcc **/*.sh > reports/shellcheck.txt
+          shellcheck -f gcc **/*.sh > reports/shellcheck.txt || true
 
       - name: Reviewdog PR Comments
         env:
