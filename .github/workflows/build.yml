@@ -1,19 +1,49 @@
-name: Build
+name: Build & Lint
+
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    types: [opened, synchronize, reopened]
+  push:          # 🚨 Triggers on every branch
+  pull_request:  # PRs (opened, updated, reopened)
+
 jobs:
   sonarqube:
-    name: SonarQube
+    name: SonarCloud + ShellCheck
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-      - name: SonarQube Scan
+          fetch-depth: 0  # Recommended by SonarCloud
+
+      - name: Install ShellCheck and jq
+        run: sudo apt-get update && sudo apt-get install -y shellcheck jq
+
+      - name: Run ShellCheck on all .sh files and generate JSON
+        run: |
+          mkdir -p reports
+          FILES=$(find . -type f -name "*.sh")
+          if [ -n "$FILES" ]; then
+            shellcheck -f json $FILES > reports/shellcheck-report.json
+          else
+            echo "[]" > reports/shellcheck-report.json
+          fi
+
+      - name: Fail build if ShellCheck found any issues
+        run: |
+          if jq 'length > 0' reports/shellcheck-report.json | grep -q true; then
+            echo "❌ ShellCheck violations found:"
+            jq . reports/shellcheck-report.json
+            exit 1
+          else
+            echo "✅ No ShellCheck violations found."
+          fi
+
+      - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=cosminneamtiu02_mlforge-g5k
+            -Dsonar.organization=cosminneamtiu02
+            -Dsonar.sources=.
+            -Dsonar.externalIssuesReportPaths=reports/shellcheck-report.json
