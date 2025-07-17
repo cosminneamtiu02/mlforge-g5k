@@ -1,32 +1,36 @@
-name: ShellCheck with Reviewdog
+name: ShellCheck Linter
 
 on:
   push:
-  pull_request_target:
-
-permissions:
-  pull-requests: write
-  contents: read
+  pull_request:
 
 jobs:
   shellcheck:
+    name: ShellCheck with Reviewdog
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install ShellCheck and reviewdog
+      - name: Install ShellCheck and Reviewdog
         run: |
           sudo apt-get update
           sudo apt-get install -y shellcheck curl
           curl -sfL https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh | sh -s -- -b /usr/local/bin
 
       - name: Run ShellCheck
+        shell: bash
         run: |
           mkdir -p reports
-          shellcheck -f gcc **/*.sh | tee reports/shellcheck.txt || true
+          files=$(find . -type f -name "*.sh")
+          if [ -z "$files" ]; then
+            echo "No shell scripts found"
+            exit 0
+          fi
+          shellcheck -f gcc $files | tee reports/shellcheck.txt || true
 
       - name: Annotate ShellCheck results in PR
+        if: github.event_name == 'pull_request'
         run: |
           cat reports/shellcheck.txt | reviewdog \
             -efm="%f:%l:%c: %t%*[^:]: %m" \
@@ -37,9 +41,11 @@ jobs:
         env:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Fail job if issues were found
+      - name: Fail on ShellCheck issues
         run: |
           if [ -s reports/shellcheck.txt ]; then
             echo "ShellCheck found issues"
             exit 1
+          else
+            echo "No ShellCheck issues"
           fi
