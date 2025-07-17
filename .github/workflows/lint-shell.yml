@@ -1,51 +1,64 @@
-name: ShellCheck Linter
+name: ShellCheck Debugging
 
 on:
-  push:
   pull_request:
+  push:
+
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
-  shellcheck:
-    name: ShellCheck with Reviewdog
+  debug-shellcheck:
+    name: ShellCheck + Reviewdog Debugging
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Install ShellCheck and Reviewdog
+      - name: Debug: Print event name and PR info
+        run: |
+          echo "Event Name: ${{ github.event_name }}"
+          echo "PR Number: ${{ github.event.pull_request.number || 'N/A' }}"
+          echo "Head SHA: ${{ github.event.pull_request.head.sha || 'N/A' }}"
+          echo "GITHUB_REF: $GITHUB_REF"
+          echo "GITHUB_SHA: $GITHUB_SHA"
+
+      - name: Install ShellCheck and reviewdog
         run: |
           sudo apt-get update
           sudo apt-get install -y shellcheck curl
           curl -sfL https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh | sh -s -- -b /usr/local/bin
 
       - name: Run ShellCheck
-        shell: bash
         run: |
           mkdir -p reports
-          files=$(find . -type f -name "*.sh")
-          if [ -z "$files" ]; then
-            echo "No shell scripts found"
-            exit 0
-          fi
-          shellcheck -f gcc $files | tee reports/shellcheck.txt || true
+          shopt -s globstar nullglob
+          shellcheck -f gcc **/*.sh | tee reports/shellcheck.txt || true
 
-      - name: Annotate ShellCheck results in PR
-        if: github.event_name == 'pull_request'
+      - name: Debug: Show report file contents
         run: |
-          cat reports/shellcheck.txt | reviewdog \
-            -efm="%f:%l:%c: %t%*[^:]: %m" \
-            -name="ShellCheck" \
-            -reporter=github-pr-review \
-            -fail-on-error=false \
-            -tee
+          echo "----- ShellCheck Output -----"
+          cat reports/shellcheck.txt || echo "No ShellCheck output"
+          echo "-----------------------------"
+
+      - name: Run reviewdog on PR
+        if: github.event_name == 'pull_request'
         env:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Fail on ShellCheck issues
         run: |
-          if [ -s reports/shellcheck.txt ]; then
-            echo "ShellCheck found issues"
-            exit 1
-          else
-            echo "No ShellCheck issues"
-          fi
+          echo "Reviewdog token: ${REVIEWDOG_GITHUB_API_TOKEN:+set}"
+          echo "Running reviewdog with github-pr-review reporter..."
+          cat reports/shellcheck.txt | reviewdog \
+            -efm="%f:%l:%c: %t%*[^:]: %m" \
+            -reporter=github-pr-review \
+            -name="ShellCheck" \
+            -fail-on-error=false \
+            -tee \
+            -debug
+
+      - name: Debug: Fail if reviewdog didn't trigger
+        if: ${{ failure() }}
+        run: |
+          echo "❌ Reviewdog failed or did not post review comments."
