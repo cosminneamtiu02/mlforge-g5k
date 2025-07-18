@@ -1,8 +1,10 @@
 # CODEOWNERS for critical files in mlforge-g5k
 # Sole owner: @cosminneamtiu02
 
-# Root-level files
+# Legal
 /LICENSE                         @cosminneamtiu02
+
+#linting
 /.pre-commit-config.yaml         @cosminneamtiu02
 
 # Workflow files
