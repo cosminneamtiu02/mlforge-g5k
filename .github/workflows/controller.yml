@@ -15,10 +15,10 @@ jobs:
             -H "Authorization: token ${{ secrets.PRIVATE_REPO_TOKEN }}" \
             -H "Accept: application/vnd.github+json" \
             "${{ secrets.PRIVATE_REPO_DISPATCH_URL }}" \
-            -d '{
-              "event_type": "validate-pr",
-              "client_payload": {
-                "pr_number": ${{ github.event.pull_request.number }},
-                "repo": "${{ github.repository }}"
+            -d "{
+              \"event_type\": \"validate-pr\",
+              \"client_payload\": {
+                \"pr_number\": ${{ github.event.pull_request.number }},
+                \"repo\": \"${{ github.repository }}\"
               }
-            }'
+            }"
