@@ -1,19 +1,20 @@
 name: PR Controller
 
 on:
-  pull_request_target:
+  pull_request:
     types: [opened, synchronize, reopened]
 
 jobs:
   dispatch-private-validation:
     runs-on: ubuntu-latest
+
     steps:
       - name: Trigger Private Repo Validation
         run: |
           curl -X POST \
             -H "Authorization: token ${{ secrets.PRIVATE_REPO_TOKEN }}" \
             -H "Accept: application/vnd.github+json" \
-            ${{ secrets.SECURITY_REPO }} \
+            "${{ secrets.PRIVATE_REPO_DISPATCH_URL }}" \
             -d '{
               "event_type": "validate-pr",
               "client_payload": {
