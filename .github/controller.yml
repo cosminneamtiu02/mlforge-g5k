@@ -13,7 +13,7 @@ jobs:
           curl -X POST \
             -H "Authorization: token ${{ secrets.PRIVATE_REPO_TOKEN }}" \
             -H "Accept: application/vnd.github+json" \
-            ${{ secrets. }} \
+            ${{ secrets.SECURITY_REPO }} \
             -d '{
               "event_type": "validate-pr",
               "client_payload": {
