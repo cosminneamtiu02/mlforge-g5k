@@ -6,17 +6,8 @@ on:
 
 jobs:
   call-private-dispatcher:
-    runs-on: ubuntu-latest
     name: Call Private Dispatcher
-
-    steps:
-      - name: Debug: Output PR context
-        run: |
-          echo "Triggering private validation for PR #${{ github.event.pull_request.number }}"
-          echo "Repo: ${{ github.repository }}"
-
-      - name: Call Private Dispatcher
-        uses: cosminneamtiu02/mlforge-g5k-security/.github/workflows/dispatcher.yml@main
-        with:
-          pr_number: ${{ github.event.pull_request.number }}
-        secrets: inherit
+    uses: cosminneamtiu02/mlforge-g5k-security/.github/workflows/dispatcher.yml@main
+    with:
+      pr_number: ${{ github.event.pull_request.number }}
+    secrets: inherit
