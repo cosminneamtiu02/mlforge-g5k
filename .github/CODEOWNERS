@@ -1,4 +1,12 @@
-LICENSE @cosminneamtiu02
-.github/workflows/controller.yml @cosminneamtiu02
-.github/CODEOWNERS @cosminneamtiu02
-.pre-commit-config.yaml @cosminneamtiu02
+# CODEOWNERS for critical files in mlforge-g5k
+# Sole owner: @cosminneamtiu02
+
+# Root-level files
+/LICENSE                         @cosminneamtiu02
+/.pre-commit-config.yaml         @cosminneamtiu02
+
+# Workflow files
+/.github/workflows/controller.yml  @cosminneamtiu02
+
+# Ownership of this file itself
+/.github/CODEOWNERS              @cosminneamtiu02
