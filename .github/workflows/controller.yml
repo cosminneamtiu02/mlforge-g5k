@@ -5,20 +5,18 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  dispatch-private-validation:
+  call-private-dispatcher:
     runs-on: ubuntu-latest
+    name: Call Private Dispatcher
 
     steps:
-      - name: Trigger Private Repo Validation
+      - name: Debug: Output PR context
         run: |
-          curl -X POST \
-            -H "Authorization: token ${{ secrets.PRIVATE_REPO_TOKEN }}" \
-            -H "Accept: application/vnd.github+json" \
-            "${{ secrets.PRIVATE_REPO_DISPATCH_URL }}" \
-            -d '{
-              "event_type": "validate-pr",
-              "client_payload": {
-                "pr_number": ${{ github.event.pull_request.number }},
-                "repo": "${{ github.repository }}"
-              }
-            }'
+          echo "Triggering private validation for PR #${{ github.event.pull_request.number }}"
+          echo "Repo: ${{ github.repository }}"
+
+      - name: Call Private Dispatcher
+        uses: cosminneamtiu02/mlforge-g5k-security/.github/workflows/dispatcher.yml@main
+        with:
+          pr_number: ${{ github.event.pull_request.number }}
+        secrets: inherit
