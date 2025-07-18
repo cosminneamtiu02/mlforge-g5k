@@ -1,1 +1,4 @@
-* @cosminneamtiu02
+LICENSE @cosminneamtiu02
+.github/workflows/controller.yml @cosminneamtiu02
+.github/CODEOWNERS @cosminneamtiu02
+.pre-commit-config.yaml @cosminneamtiu02
