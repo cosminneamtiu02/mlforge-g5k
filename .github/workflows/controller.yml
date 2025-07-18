@@ -5,9 +5,11 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  call-private-dispatcher:
-    name: Call Private Dispatcher
-    uses: cosminneamtiu02/mlforge-g5k-security/.github/workflows/dispatcher.yml@main
-    with:
-      pr_number: ${{ github.event.pull_request.number }}
-    secrets: inherit
+  echo-debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm Trigger
+        run: |
+          echo "✅ PR workflow was triggered."
+          echo "📦 Repo: ${{ github.repository }}"
+          echo "🔢 PR Number: ${{ github.event.pull_request.number }}"
